@@ -6,54 +6,40 @@ from torchvision import transforms
 from PIL import Image, UnidentifiedImageError
 from huggingface_hub import hf_hub_download
 
-# Configure page
+# Set title
 st.set_page_config(page_title="Cat vs Dog Classifier", layout="centered")
+st.title("🐱🐶 Cat vs Dog Classifier using ViT")
 
-# Load model from Hugging Face Hub
+# Device
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Transformasi gambar
+image_size = 224
+transform = transforms.Compose([
+    transforms.Resize((image_size, image_size)),
+    transforms.ToTensor(),
+    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+])
+
+# Load model
 @st.cache_resource
 def load_model():
-    model_path = hf_hub_download(
-        repo_id="glen-louis/cat-dogs",  
-        filename="vit_model.pth"
-    )
     model = timm.create_model("vit_base_patch16_224", pretrained=False)
     model.head = nn.Linear(model.head.in_features, 2)
-    model.load_state_dict(torch.load(model_path, map_location=torch.device("cpu")))
+    model.load_state_dict(torch.load("vit_model.pth", map_location=device))  # Pastikan file ada di folder sama
+    model.to(device)
     model.eval()
     return model
 
 model = load_model()
 
-# Define image transform (same as training)
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406],
-                         [0.229, 0.224, 0.225])
-])
-
-# Header
-st.markdown(
-    "<h1 style='text-align: center;'>Cat vs Dog Image Classifier</h1>",
-    unsafe_allow_html=True
-)
-
-st.write(
-    "This application uses a fine-tuned Vision Transformer (ViT) model to classify uploaded images as either a cat or a dog."
-)
-
-st.markdown("---")
-
-# File uploader
-file = st.file_uploader(
-    "Upload an image (JPG, PNG, BMP, TIFF, WEBP):",
-    type=["jpg", "jpeg", "png", "bmp", "webp", "tiff", "tif"]
-)
+# Upload gambar
+uploaded_file = st.file_uploader("Upload a cat or dog image", type=["jpg", "jpeg", "png"])
 
 # Prediction logic
-if file is not None:
+if uploaded_file is not None:
     try:
-        image = Image.open(file).convert("RGB")
+        image = Image.open(uploaded_file).convert("RGB")
         st.image(image, caption="Uploaded Image", use_container_width=True)
 
         st.markdown("### Prediction")
