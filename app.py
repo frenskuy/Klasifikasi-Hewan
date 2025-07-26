@@ -1,4 +1,3 @@
-import streamlit as st
 import torch
 import timm
 import torch.nn as nn
@@ -15,24 +14,24 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS for macho styling
+# Custom CSS for cyberpunk styling
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Rajdhani:wght@300;400;500;600&display=swap');
     
     .stApp {
-        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 25%, #16213e 75%, #0f3460 100%);
-        color: #ffffff;
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 25%, #16213e 50%, #0f1419 100%);
+        color: #e0e0e0;
     }
     
     .main-header {
-        background: linear-gradient(135deg, #000000 0%, #434343 100%);
-        border: 2px solid #00ffff;
-        padding: 2.5rem;
-        border-radius: 0;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        padding: 2rem;
+        border-radius: 8px;
         margin-bottom: 2rem;
         text-align: center;
-        box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        box-shadow: 0 4px 20px rgba(0, 255, 255, 0.1);
         position: relative;
         overflow: hidden;
     }
@@ -44,8 +43,8 @@ st.markdown("""
         left: -100%;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
-        animation: sweep 3s infinite;
+        background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+        animation: sweep 4s infinite;
     }
     
     @keyframes sweep {
@@ -55,12 +54,12 @@ st.markdown("""
     
     .main-title {
         font-family: 'Orbitron', monospace;
-        font-size: 3.5rem;
-        font-weight: 900;
-        color: #00ffff;
+        font-size: 2.2rem;
+        font-weight: 600;
+        color: #00d4ff;
         text-transform: uppercase;
-        letter-spacing: 3px;
-        text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        letter-spacing: 2px;
+        text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
         margin-bottom: 0.5rem;
         position: relative;
         z-index: 1;
@@ -68,10 +67,10 @@ st.markdown("""
     
     .subtitle {
         font-family: 'Rajdhani', sans-serif;
-        font-size: 1.3rem;
-        color: #ffffff;
+        font-size: 1rem;
+        color: #a0a0a0;
         text-transform: uppercase;
-        letter-spacing: 2px;
+        letter-spacing: 1px;
         margin-bottom: 0;
         position: relative;
         z-index: 1;
@@ -83,82 +82,75 @@ st.markdown("""
     }
     
     .result-card {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-        border: 2px solid #00ff00;
-        padding: 2rem;
-        border-radius: 0;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%);
+        border: 1px solid rgba(0, 255, 170, 0.4);
+        padding: 1.5rem;
+        border-radius: 8px;
         margin: 1rem 0;
         text-align: center;
-        box-shadow: 0 0 25px rgba(0, 255, 0, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 255, 170, 0.1);
         position: relative;
-    }
-    
-    .result-card::before {
-        content: '';
-        position: absolute;
-        top: -2px;
-        left: -2px;
-        right: -2px;
-        bottom: -2px;
-        background: linear-gradient(45deg, #00ff00, #00ffff, #ff0040, #00ff00);
-        border-radius: 0;
-        z-index: -1;
-        animation: borderGlow 2s linear infinite;
-    }
-    
-    @keyframes borderGlow {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
     }
     
     .prediction-text {
         font-family: 'Orbitron', monospace;
-        font-size: 3rem;
-        font-weight: 900;
+        font-size: 1.8rem;
+        font-weight: 600;
         margin-bottom: 1rem;
         text-transform: uppercase;
-        letter-spacing: 2px;
-        text-shadow: 0 0 15px currentColor;
+        letter-spacing: 1px;
+        text-shadow: 0 0 8px currentColor;
     }
     
     .confidence-text {
         font-family: 'Rajdhani', sans-serif;
-        font-size: 1.8rem;
-        font-weight: 700;
+        font-size: 1.2rem;
+        font-weight: 500;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
+        opacity: 0.9;
     }
     
     .cat-result {
-        color: #ff0040;
-        text-shadow: 0 0 20px #ff0040;
+        color: #ff6b9d;
+        text-shadow: 0 0 10px rgba(255, 107, 157, 0.5);
     }
     
     .dog-result {
-        color: #00ffff;
-        text-shadow: 0 0 20px #00ffff;
+        color: #00d4ff;
+        text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
     }
     
     .uncertain-result {
-        color: #ffaa00;
-        text-shadow: 0 0 20px #ffaa00;
+        color: #ffaa44;
+        text-shadow: 0 0 10px rgba(255, 170, 68, 0.5);
     }
     
     .info-box {
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%);
-        border: 1px solid #00ffff;
+        background: linear-gradient(135deg, rgba(26, 26, 46, 0.6) 0%, rgba(22, 33, 62, 0.6) 100%);
+        border: 1px solid rgba(0, 255, 255, 0.2);
         padding: 1.5rem;
-        border-radius: 0;
+        border-radius: 6px;
         margin: 1rem 0;
-        box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+        box-shadow: 0 2px 10px rgba(0, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
     }
     
     .info-box h3 {
         font-family: 'Orbitron', monospace;
-        color: #00ffff;
+        color: #00ffaa;
         text-transform: uppercase;
         letter-spacing: 1px;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .info-box p {
+        font-family: 'Rajdhani', sans-serif;
+        color: #c0c0c0;
+        font-size: 1rem;
+        line-height: 1.5;
+        margin-bottom: 0.5rem;
     }
     
     .stats-container {
@@ -169,59 +161,94 @@ st.markdown("""
     
     .stat-item {
         text-align: center;
-        padding: 1.5rem;
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%);
-        border: 1px solid #00ff00;
-        border-radius: 0;
+        padding: 1.2rem;
+        background: linear-gradient(135deg, rgba(26, 26, 46, 0.6) 0%, rgba(22, 33, 62, 0.6) 100%);
+        border: 1px solid rgba(0, 255, 170, 0.3);
+        border-radius: 6px;
         margin: 0 0.5rem;
         flex: 1;
-        box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+        box-shadow: 0 2px 12px rgba(0, 255, 170, 0.1);
         transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
     }
     
     .stat-item:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 25px rgba(0, 255, 0, 0.4);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 20px rgba(0, 255, 170, 0.2);
+        border-color: rgba(0, 255, 170, 0.5);
+    }
+    
+    .stat-item div:first-child {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.3));
+    }
+    
+    .stat-item div:nth-child(2) {
+        font-family: 'Orbitron', monospace;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #00ffaa;
+        margin-bottom: 0.3rem;
+    }
+    
+    .stat-item div:last-child {
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 0.85rem;
+        color: #a0a0a0;
     }
     
     .emoji-large {
-        font-size: 4rem;
+        font-size: 2.5rem;
         margin-bottom: 1rem;
-        filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.8));
-    }
-    
-    .progress-bar {
-        margin: 1rem 0;
+        filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4));
     }
     
     /* Streamlit specific overrides */
     .stProgress > div > div > div > div {
-        background: linear-gradient(90deg, #00ff00 0%, #00ffff 100%);
+        background: linear-gradient(90deg, #00ffaa 0%, #00d4ff 100%);
+        box-shadow: 0 0 10px rgba(0, 255, 170, 0.3);
     }
     
     .stFileUploader > div {
-        border: 2px solid #00ffff;
-        border-radius: 0;
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 6px;
+        background: linear-gradient(135deg, rgba(26, 26, 46, 0.4) 0%, rgba(22, 33, 62, 0.4) 100%);
+        backdrop-filter: blur(10px);
     }
     
     .stMarkdown h3 {
         font-family: 'Orbitron', monospace;
-        color: #00ffff;
+        color: #00d4ff;
         text-transform: uppercase;
         letter-spacing: 1px;
+        font-size: 1.1rem;
+        text-shadow: 0 0 5px rgba(0, 212, 255, 0.3);
     }
     
     .stMarkdown h1, .stMarkdown h2 {
         font-family: 'Orbitron', monospace;
-        color: #00ffff;
+        color: #00d4ff;
     }
     
     .stExpanderHeader {
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%) !important;
-        border: 1px solid #00ffff !important;
-        color: #00ffff !important;
+        background: linear-gradient(135deg, rgba(26, 26, 46, 0.8) 0%, rgba(22, 33, 62, 0.8) 100%) !important;
+        border: 1px solid rgba(0, 255, 255, 0.3) !important;
+        color: #00ffaa !important;
         font-family: 'Orbitron', monospace !important;
+        font-size: 0.9rem !important;
+        border-radius: 6px !important;
+    }
+    
+    .stSpinner > div {
+        border-top-color: #00ffaa !important;
+    }
+    
+    .stAlert {
+        background: linear-gradient(135deg, rgba(26, 26, 46, 0.8) 0%, rgba(22, 33, 62, 0.8) 100%) !important;
+        border: 1px solid rgba(0, 255, 170, 0.4) !important;
+        border-radius: 6px !important;
+        color: #e0e0e0 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -229,8 +256,8 @@ st.markdown("""
 # Header section
 st.markdown("""
 <div class="main-header">
-    <div class="main-title">⚡ NEURAL BEAST DETECTOR ⚡</div>
-    <div class="subtitle">Military-Grade Vision AI • Cat vs Dog Combat Classification</div>
+    <div class="main-title">Neural Beast Detector</div>
+    <div class="subtitle">Cyberpunk Vision AI • Cat vs Dog Classification</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -263,18 +290,18 @@ with col2:
     # Info section
     st.markdown("""
     <div class="info-box">
-        <h3>🎯 MISSION BRIEFING:</h3>
-        <p>1. Deploy image payload (JPG, JPEG, PNG format)</p>
-        <p>2. Neural network will execute tactical analysis via Vision Transformer</p>
-        <p>3. Receive classified intel with precision confidence metrics</p>
+        <h3>System Protocol</h3>
+        <p>1. Upload target image (JPG, JPEG, PNG format)</p>
+        <p>2. Neural network executes deep analysis via Vision Transformer</p>
+        <p>3. Receive classification result with confidence metrics</p>
     </div>
     """, unsafe_allow_html=True)
 
 # File uploader
 uploaded_file = st.file_uploader(
-    "🚀 DEPLOY TARGET IMAGE",
+    "🔍 Upload Target Image",
     type=["jpg", "jpeg", "png"],
-    help="Select image payload: JPG, JPEG, or PNG format"
+    help="Select image file: JPG, JPEG, or PNG format"
 )
 
 # Load model
@@ -294,16 +321,16 @@ if uploaded_file is not None:
             image = Image.open(uploaded_file).convert("RGB")
             st.image(
                 image, 
-                caption="🎯 TARGET ACQUIRED", 
+                caption="📸 Target Image", 
                 use_container_width=True,
                 width=300
             )
         
         with result_col:
-            st.success("✅ NEURAL NETWORK ONLINE")
+            st.success("✅ Neural Network Online")
             
             # Processing animation
-            with st.spinner("⚡ EXECUTING TACTICAL SCAN..."):
+            with st.spinner("⚡ Processing Neural Scan..."):
                 # Preprocess and predict
                 img_tensor = transform(image).unsqueeze(0).to(device)
                 with torch.no_grad():
@@ -311,8 +338,8 @@ if uploaded_file is not None:
                     probabilities = torch.softmax(output, dim=1)[0]
                     predicted_class = torch.argmax(probabilities).item()
             
-            class_labels = ["🔥 FELINE UNIT", "⚡ CANINE WARRIOR"]
-            class_emojis = ["🔥", "⚡"]
+            class_labels = ["Feline Unit", "Canine Unit"]
+            class_emojis = ["🐱", "🐶"]
             confidence = probabilities[predicted_class].item()
             confidence_threshold = 0.70
             
@@ -321,13 +348,13 @@ if uploaded_file is not None:
             
             if confidence < confidence_threshold:
                 st.markdown(f"""
-                <div class="emoji-large">⚠️</div>
-                <div class="prediction-text uncertain-result">UNIDENTIFIED</div>
+                <div class="emoji-large">❓</div>
+                <div class="prediction-text uncertain-result">Unknown</div>
                 <div class="confidence-text">
-                    TARGET CLASSIFICATION INCONCLUSIVE
+                    Classification inconclusive
                 </div>
-                <div style="margin-top: 1rem; font-size: 1.2rem;">
-                    CONFIDENCE: {confidence:.1%}
+                <div style="margin-top: 1rem; font-size: 1rem;">
+                    Confidence: {confidence:.1%}
                 </div>
                 """, unsafe_allow_html=True)
             else:
@@ -335,29 +362,29 @@ if uploaded_file is not None:
                 st.markdown(f"""
                 <div class="emoji-large">{class_emojis[predicted_class]}</div>
                 <div class="prediction-text {result_class}">{class_labels[predicted_class]}</div>
-                <div class="confidence-text">CONFIDENCE: {confidence:.1%}</div>
+                <div class="confidence-text">Confidence: {confidence:.1%}</div>
                 """, unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
             # Progress bars for both classes
-            st.markdown("### 📊 TACTICAL ANALYSIS:")
+            st.markdown("### Analysis Report")
             
             cat_prob = probabilities[0].item()
             dog_prob = probabilities[1].item()
             
-            st.markdown("🔥 **FELINE UNIT:**")
+            st.markdown("🐱 **Feline Unit:**")
             st.progress(cat_prob)
             st.markdown(f"**{cat_prob:.1%}**")
             
-            st.markdown("⚡ **CANINE WARRIOR:**")
+            st.markdown("🐶 **Canine Unit:**")
             st.progress(dog_prob)
             st.markdown(f"**{dog_prob:.1%}**")
     
     except UnidentifiedImageError:
-        st.error("❌ File yang diunggah bukan gambar yang valid atau rusak.")
+        st.error("❌ Invalid image file - corrupted or unsupported format")
     except Exception as e:
-        st.error(f"❌ Terjadi kesalahan yang tidak terduga: {e}")
+        st.error(f"❌ System error: {e}")
 
 # Footer with stats
 st.markdown("---")
@@ -366,46 +393,47 @@ col1, col2, col3 = st.columns(3)
 with col1:
     st.markdown("""
     <div class="stat-item">
-        <div style="font-size: 2rem;">🤖</div>
-        <div style="font-weight: bold;">Vision Transformer</div>
-        <div>State-of-the-art AI</div>
+        <div>🧠</div>
+        <div>Neural Engine</div>
+        <div>Vision Transformer</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col2:
     st.markdown("""
     <div class="stat-item">
-        <div style="font-size: 2rem;">⚡</div>
-        <div style="font-weight: bold;">Real-time</div>
-        <div>Instant Classification</div>
+        <div>⚡</div>
+        <div>Real-time</div>
+        <div>Instant Analysis</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col3:
     st.markdown("""
     <div class="stat-item">
-        <div style="font-size: 2rem;">🎯</div>
-        <div style="font-weight: bold;">High Accuracy</div>
-        <div>Reliable Results</div>
+        <div>🎯</div>
+        <div>High Precision</div>
+        <div>Accurate Results</div>
     </div>
     """, unsafe_allow_html=True)
 
 # Additional info
-with st.expander("ℹ️ Tentang Model"):
+with st.expander("⚙️ System Information"):
     st.markdown("""
-    **Vision Transformer (ViT)** adalah arsitektur deep learning yang menggunakan mekanisme attention 
-    untuk mengklasifikasikan gambar. Model ini telah dilatih khusus untuk membedakan antara gambar 
-    kucing dan anjing dengan akurasi tinggi.
+    **Neural Beast Detector** menggunakan arsitektur Vision Transformer (ViT) untuk 
+    klasifikasi gambar dengan akurasi tinggi. Sistem ini telah dioptimalkan untuk 
+    mengenali perbedaan antara kucing dan anjing dengan presisi maksimal.
     
-    **Fitur:**
-    - Menggunakan ViT base patch16_224
-    - Preprocessing otomatis
-    - Confidence threshold untuk hasil yang lebih akurat
-    - Interface yang user-friendly
+    **Technical Specifications:**
+    - Core Architecture: ViT base patch16_224
+    - Automatic image preprocessing
+    - Confidence threshold untuk hasil akurat
+    - Cyberpunk-themed interface
+    - Real-time processing capability
     """)
 
 st.markdown("""
-<div style="text-align: center; margin-top: 2rem; opacity: 0.7;">
-    Made with ❤️ using Streamlit & PyTorch
+<div style="text-align: center; margin-top: 2rem; opacity: 0.6; font-family: 'Rajdhani', sans-serif; font-size: 0.9rem;">
+    Powered by Neural Network Technology
 </div>
 """, unsafe_allow_html=True)
