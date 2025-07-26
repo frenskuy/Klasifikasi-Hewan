@@ -1,5 +1,6 @@
 import torch
 import timm
+import sreamlit as st
 import torch.nn as nn
 from torchvision import transforms
 from PIL import Image, UnidentifiedImageError
