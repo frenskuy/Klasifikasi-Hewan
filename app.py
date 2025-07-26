@@ -339,7 +339,7 @@ if uploaded_file is not None:
                     probabilities = torch.softmax(output, dim=1)[0]
                     predicted_class = torch.argmax(probabilities).item()
             
-            class_labels = ["Feline Unit", "Canine Unit"]
+            class_labels = ["Kucing", "Anjing"]
             class_emojis = ["🐱", "🐶"]
             confidence = probabilities[predicted_class].item()
             confidence_threshold = 0.70
@@ -374,11 +374,11 @@ if uploaded_file is not None:
             cat_prob = probabilities[0].item()
             dog_prob = probabilities[1].item()
             
-            st.markdown("🐱 **Feline Unit:**")
+            st.markdown("🐱 **Kucing:**")
             st.progress(cat_prob)
             st.markdown(f"**{cat_prob:.1%}**")
             
-            st.markdown("🐶 **Canine Unit:**")
+            st.markdown("🐶 **Anjing:**")
             st.progress(dog_prob)
             st.markdown(f"**{dog_prob:.1%}**")
     
