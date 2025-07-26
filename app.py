@@ -6,77 +6,77 @@ from torchvision import transforms
 from PIL import Image, UnidentifiedImageError
 from huggingface_hub import hf_hub_download
 
-# Set title
-st.set_page_config(page_title="Cat vs Dog Classifier", layout="centered")
-st.title("🐱🐶 Cat vs Dog Classifier using ViT")
+# Judul halaman
+st.set_page_config(page_title="Klasifikasi Kucing vs Anjing", layout="centered")
+st.title("🐱🐶 Klasifikasi Gambar Kucing vs Anjing dengan ViT")
 
-# Device
+# Deteksi perangkat
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Transformasi gambar
-image_size = 224
+ukuran_gambar = 224
 transform = transforms.Compose([
-    transforms.Resize((image_size, image_size)),
+    transforms.Resize((ukuran_gambar, ukuran_gambar)),
     transforms.ToTensor(),
     transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
 ])
 
-# Load model
+# Fungsi untuk memuat model
 @st.cache_resource
-def load_model():
+def muat_model():
     model = timm.create_model("vit_base_patch16_224", pretrained=False)
     model.head = nn.Linear(model.head.in_features, 2)
-    model.load_state_dict(torch.load("vit_model.pth", map_location=device))  # Pastikan file ada di folder sama
+    model.load_state_dict(torch.load("vit_model.pth", map_location=device))  # Pastikan file model tersedia
     model.to(device)
     model.eval()
     return model
 
-model = load_model()
+model = muat_model()
 
 # Upload gambar
-uploaded_file = st.file_uploader("Upload a cat or dog image", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("Unggah gambar kucing atau anjing", type=["jpg", "jpeg", "png"])
 
-# Prediction logic
+# Logika prediksi
 if uploaded_file is not None:
     try:
         image = Image.open(uploaded_file).convert("RGB")
-        st.image(image, caption="Uploaded Image", use_container_width=True)
+        st.image(image, caption="Gambar yang Diunggah", use_container_width=True)
 
-        st.markdown("### Prediction")
+        st.markdown("### Hasil Prediksi")
 
-        # Preprocess and predict
-        img_tensor = transform(image).unsqueeze(0)
+        # Pra-pemrosesan dan prediksi
+        img_tensor = transform(image).unsqueeze(0).to(device)
         with torch.no_grad():
             output = model(img_tensor)
-            probabilities = torch.softmax(output, dim=1)[0]
-            predicted_class = torch.argmax(probabilities).item()
+            probabilitas = torch.softmax(output, dim=1)[0]
+            kelas_terprediksi = torch.argmax(probabilitas).item()
 
-        class_labels = ["Cat", "Dog"]
-        confidence = probabilities[predicted_class].item()
+        label_kelas = ["Kucing", "Anjing"]
+        keyakinan = probabilitas[kelas_terprediksi].item()
 
-        # Confidence threshold to determine if image might be neither
-        confidence_threshold = 0.75
+        # Threshold keyakinan
+        ambang_keyakinan = 0.90
 
-        if confidence < confidence_threshold:
+        if keyakinan < ambang_keyakinan:
             st.markdown(
-                f"<div style='font-size: 20px; font-weight: bold; color: orange;'>Class: Neither Cat nor Dog</div>",
+                f"<div style='font-size: 20px; font-weight: bold; color: orange;'>Kelas: Bukan Kucing atau Anjing</div>",
                 unsafe_allow_html=True
             )
             st.markdown(
-                f"<div style='font-size: 16px;'>The model is not confident enough to classify this image as a cat or a dog (Confidence: {confidence:.2%}).</div>",
+                f"<div style='font-size: 16px;'>Model tidak cukup yakin untuk mengklasifikasikan gambar ini sebagai kucing atau anjing (Keyakinan: {keyakinan:.2%}).</div>",
                 unsafe_allow_html=True
             )
         else:
             st.markdown(
-                f"<div style='font-size: 20px; font-weight: bold;'>Class: {class_labels[predicted_class]}</div>",
+                f"<div style='font-size: 20px; font-weight: bold;'>Kelas: {label_kelas[kelas_terprediksi]}</div>",
                 unsafe_allow_html=True
             )
             st.markdown(
-                f"<div style='font-size: 16px;'>Confidence: {confidence:.2%}</div>",
+                f"<div style='font-size: 16px;'>Tingkat Keyakinan: {keyakinan:.2%}</div>",
                 unsafe_allow_html=True
             )
 
     except UnidentifiedImageError:
-        st.error("The uploaded file is not a valid image or is corrupted.")
+        st.error("File yang diunggah bukan gambar yang valid atau rusak.")
     except Exception as e:
-        st.error(f"An unexpected error occurred: {e}")
+        st.error(f"Terjadi kesalahan yang tidak terduga: {e}")
