@@ -39,7 +39,7 @@ uploaded_file = st.file_uploader("Upload a cat or dog image", type=["jpg", "jpeg
 # Prediction logic
 if uploaded_file is not None:
     try:
-        image = Image.open(file).convert("RGB")
+        image = Image.open(uploaded_file).convert("RGB")
         st.image(image, caption="Uploaded Image", use_container_width=True)
 
         st.markdown("### Prediction")
